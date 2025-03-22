@@ -6,7 +6,7 @@ import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
 import { useRef } from 'react';
 import { AarcEthWalletConnector, wagmiConfig } from '@aarc-xyz/eth-connector';
 import { aarcConfig } from './config/aarcConfig';
-import DepositModal from './components/IntentXDepositModal';
+import RampXNFTModal from './components/RampXNFTModal';
 
 declare global {
   interface Window {
@@ -27,7 +27,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
         <AarcEthWalletConnector aarcWebClient={aarcModal} debugLog={true} >
-          <DepositModal aarcModal={aarcModal} />
+          <RampXNFTModal aarcModal={aarcModal} />
         </AarcEthWalletConnector>
       </WagmiProvider>
     </QueryClientProvider>

@@ -1,84 +1,16 @@
 export enum SupportedChainId {
-    BASE = 8453
+    BASE = 8453,
+    ETHEREUM = 1
 }
 
 export type AddressMap = {
     [chainId: number]: string;
 };
 
-export const DIAMOND_ADDRESS: AddressMap = {
-    [SupportedChainId.BASE]: '0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43'
+export const THE_RBTZ_NFT_CONTRACT_ADDRESS: AddressMap = {
+    [SupportedChainId.ETHEREUM]: '0x4db9e0d1631491a3edba3e2cc9e581cac1d29699'
 };
 
-export const MULTIACCOUNT_ADDRESS: AddressMap = {
-    [SupportedChainId.BASE]: '0x8Ab178C07184ffD44F0ADfF4eA2ce6cFc33F3b86'
-};
-
-export const multiAccountAbi = [
-    {
-        name: "getAccountsLength",
-        type: "function",
-        stateMutability: "view",
-        inputs: [
-            {
-                name: "user",
-                type: "address"
-            }
-        ],
-        outputs: [
-            {
-                name: "",
-                type: "uint256"
-            }
-        ]
-    },
-    {
-        name: "getAccounts",
-        type: "function",
-        stateMutability: "view",
-        inputs: [
-            {
-                name: "user",
-                type: "address"
-            },
-            {
-                name: "start",
-                type: "uint256"
-            },
-            {
-                name: "size",
-                type: "uint256"
-            }
-        ],
-        outputs: [
-            {
-                name: "",
-                type: "tuple[]",
-                components: [
-                    {
-                        name: "accountAddress",
-                        type: "address"
-                    },
-                    {
-                        name: "name",
-                        type: "string"
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        name: "addAccount",
-        type: "function",
-        stateMutability: "nonpayable",
-        inputs: [
-            {
-                name: "name",
-                type: "string"
-            }
-        ],
-        outputs: []
-    }
-] as const;
+export const SEAPORT_ADDRESS = "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC"; 
 
 export const BASE_RPC_URL = "https://mainnet.base.org";

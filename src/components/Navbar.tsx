@@ -20,8 +20,8 @@ export const Navbar = () => {
                     />
                     <img
                         className="h-12 w-auto"
-                        src="/intentx-name-logo.svg"
-                        alt="IntentX Logo"
+                        src="/rampx-logo.png"
+                        alt="RampX Logo"
                     />
                 </div>
                 <div className="flex items-center space-x-4">
