@@ -5,40 +5,10 @@ import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
 import { THE_RBTZ_NFT_CONTRACT_ADDRESS, SupportedChainId, MINTING_CONTRACT_ADDRESS } from '../constants';
 import { Navbar } from './Navbar';
 import StyledConnectButton from './StyledConnectButton';
-import { NFT, Listing } from '../types/nft';
-
-const CACHE_KEY = 'rbtz_nft_cache';
-const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-// Simple minting contract address on mainnet
-
-interface CacheData {
-    timestamp: number;
-    nfts: NFT[];
-}
-
-const getCachedNFTs = (): NFT[] | null => {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
-
-    const cacheData: CacheData = JSON.parse(cached);
-    if (Date.now() - cacheData.timestamp > CACHE_EXPIRY) {
-        localStorage.removeItem(CACHE_KEY);
-        return null;
-    }
-
-    return cacheData.nfts;
-};
-
-const setCachedNFTs = (nfts: NFT[]) => {
-    const cacheData: CacheData = {
-        timestamp: Date.now(),
-        nfts
-    };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-};
+import { NFT } from '../types/nft';
 
 const ETH_TO_BRETT_RATE = 71000; // 1 ETH = 71k BRETT
+const HARDCODED_PRICE = 0.0017; // Hardcoded price in ETH
 
 const convertEthToBrett = (ethAmount: number): number => {
     return (ethAmount * ETH_TO_BRETT_RATE);
@@ -58,62 +28,11 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
         }
     }, [address]);
 
-    const fetchNFTDetails = async (tokenId: string, listing: Listing): Promise<NFT | null> => {
-        try {
-            const response = await fetch(
-                `https://api.opensea.io/api/v2/chain/ethereum/contract/${THE_RBTZ_NFT_CONTRACT_ADDRESS[SupportedChainId.ETHEREUM]}/nfts/${tokenId}`,
-                {
-                    headers: {
-                        'X-API-KEY': import.meta.env.VITE_OPENSEA_API_KEY,
-                        'Accept': 'application/json'
-                    }
-                }
-            );
-            const data = await response.json();
-
-            // Map the API response to our NFT interface
-            const nft: NFT = {
-                identifier: data.nft.identifier,
-                collection: data.nft.collection,
-                contract: data.nft.contract,
-                token_standard: data.nft.token_standard,
-                name: data.nft.name,
-                description: data.nft.description,
-                image_url: data.nft.image_url,
-                display_image_url: data.nft.display_image_url,
-                display_animation_url: data.nft.display_animation_url,
-                metadata_url: data.nft.metadata_url,
-                opensea_url: data.nft.opensea_url,
-                updated_at: data.nft.updated_at,
-                is_disabled: data.nft.is_disabled,
-                is_nsfw: data.nft.is_nsfw,
-                animation_url: data.nft.animation_url,
-                is_suspicious: data.nft.is_suspicious,
-                creator: data.nft.creator,
-                traits: data.nft.traits,
-                listing
-            };
-
-            return nft;
-        } catch (error) {
-            console.error(`Error fetching NFT details for token ${tokenId}:`, error);
-            return null;
-        }
-    };
-
     const fetchNFTs = async () => {
-        // Check cache first
-        const cachedNFTs = getCachedNFTs();
-        if (cachedNFTs) {
-            setNfts(cachedNFTs);
-            return;
-        }
-
         setIsLoading(true);
         try {
-            // Get the listings
-            const listingsResponse = await fetch(
-                'https://api.opensea.io/api/v2/listings/collection/the-rbtz/best?limit=50',
+            const response = await fetch(
+                `https://api.opensea.io/api/v2/collection/the-rbtz/nfts?limit=20`,
                 {
                     headers: {
                         'X-API-KEY': import.meta.env.VITE_OPENSEA_API_KEY,
@@ -121,29 +40,12 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
                     }
                 }
             );
-            const listingsData = await listingsResponse.json();
 
-            // Create a Map to track unique NFTs by identifier
-            const uniqueNFTs = new Map<string, NFT>();
+            const data = await response.json();
+            console.log(data);
 
-            // Fetch details for each listed NFT
-            const nftPromises = listingsData.listings.map(async (listing: Listing) => {
-                const tokenId = listing.protocol_data.parameters.offer[0].identifierOrCriteria;
-                const nft = await fetchNFTDetails(tokenId, listing);
-                if (nft) {
-                    // Only add if we haven't seen this identifier before
-                    if (!uniqueNFTs.has(nft.identifier)) {
-                        uniqueNFTs.set(nft.identifier, nft);
-                    }
-                }
-                return nft;
-            });
-
-            await Promise.all(nftPromises);
-            const validNFTs = Array.from(uniqueNFTs.values());
-            // Cache the results
-            setCachedNFTs(validNFTs);
-            setNfts(validNFTs);
+            const results = data.nfts;
+            setNfts(results);
         } catch (error) {
             console.error('Error fetching NFTs:', error);
         } finally {
@@ -152,7 +54,7 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
     };
 
     const handleDeposit = async () => {
-        if (!address || !selectedNFT?.listing) return;
+        if (!address || !selectedNFT) return;
 
         try {
             setIsProcessing(true);
@@ -172,7 +74,8 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
                 MINTING_CONTRACT_ADDRESS,
                 amount
             ]);
-            // Update the amount in ETH - use the same amount as the working implementation
+
+            // Update the amount in ETH
             aarcModal.updateRequestedAmount(0.01);
 
             // Update Aarc's destination contract configuration
@@ -195,7 +98,7 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
         }
     };
 
-    const shouldDisableInteraction = !selectedNFT || !selectedNFT.listing;
+    const shouldDisableInteraction = !selectedNFT;
 
     return (
         <div className="min-h-screen bg-aarc-bg grid-background">
@@ -235,16 +138,10 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
                                             </div>
                                             <div className="text-white text-sm truncate">{nft.name}</div>
                                             <div className="text-[#A5E547] text-sm">
-                                                {nft.listing ? (
-                                                    <>
-                                                        {Number(nft.listing.price.current.value) /
-                                                            Math.pow(10, nft.listing.price.current.decimals)} ETH
-                                                        <span className="text-xs ml-1">
-                                                            ({convertEthToBrett(Number(nft.listing.price.current.value) /
-                                                                Math.pow(10, nft.listing.price.current.decimals)).toFixed(2)} BRETT)
-                                                        </span>
-                                                    </>
-                                                ) : 'Not Listed'}
+                                                {HARDCODED_PRICE} ETH
+                                                <span className="text-xs ml-1">
+                                                    ({convertEthToBrett(HARDCODED_PRICE).toFixed(2)} BRETT)
+                                                </span>
                                             </div>
                                         </div>
                                     ))
