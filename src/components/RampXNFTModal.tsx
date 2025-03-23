@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
-import { BASE_RPC_URL, THE_RBTZ_NFT_CONTRACT_ADDRESS, SupportedChainId, SEAPORT_ADDRESS } from '../constants';
-import { BASE_CHAIN_ID } from '../chain';
+import { THE_RBTZ_NFT_CONTRACT_ADDRESS, SupportedChainId, MINTING_CONTRACT_ADDRESS } from '../constants';
 import { Navbar } from './Navbar';
 import StyledConnectButton from './StyledConnectButton';
 import { NFT, Listing } from '../types/nft';
 
 const CACHE_KEY = 'rbtz_nft_cache';
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+// Simple minting contract address on mainnet
 
 interface CacheData {
     timestamp: number;
@@ -41,25 +42,15 @@ const ETH_TO_BRETT_RATE = 71000; // 1 ETH = 71k BRETT
 
 const convertEthToBrett = (ethAmount: number): number => {
     return (ethAmount * ETH_TO_BRETT_RATE);
-};// OpenSea Seaport v1.5
+};
 
 export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) => {
     const [isProcessing, setIsProcessing] = useState(false);
-    const [isWrongNetwork, setIsWrongNetwork] = useState(false);
     const [nfts, setNfts] = useState<NFT[]>([]);
     const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const { address, chain } = useAccount();
-
-    // Create provider instance
-    const provider = new ethers.JsonRpcProvider(BASE_RPC_URL);
-
-    useEffect(() => {
-        if (chain) {
-            setIsWrongNetwork(chain.id !== BASE_CHAIN_ID);
-        }
-    }, [chain]);
+    const { address } = useAccount();
 
     useEffect(() => {
         if (address) {
@@ -166,49 +157,29 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
         try {
             setIsProcessing(true);
 
-            // Create the Seaport contract interface with the correct function signature
-            const seaportInterface = new ethers.Interface([
-                "function fulfillBasicOrder(tuple(address considerationToken, uint256 considerationIdentifier, uint256 considerationAmount, address payable offerer, address zone, address offerToken, uint256 offerIdentifier, uint256 offerAmount, uint8 basicOrderType, uint256 startTime, uint256 endTime, bytes32 zoneHash, uint256 salt, bytes32 offererConduitKey, bytes32 fulfillerConduitKey, uint256 totalOriginalAdditionalRecipients, tuple(uint256 amount, address payable recipient)[] additionalRecipients, bytes signature)) public payable"
+            // Create the simple minting contract interface
+            const simpleDappInterface = new ethers.Interface([
+                "function mint(address token, address to, uint256 amount) external"
             ]);
 
-            const { parameters } = selectedNFT.listing.protocol_data;
-            const offer = parameters.offer[0];
-            const consideration = parameters.consideration[0];
+            // Hardcoded values for demo
+            const tokenAddress = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"; // USDC on Base
+            const amount = "10000";
 
-            // Generate the contract payload for buying the NFT through Seaport
-            const contractPayload = seaportInterface.encodeFunctionData("fulfillBasicOrder", [{
-                considerationToken: consideration.token,
-                considerationIdentifier: "0", // For ETH
-                considerationAmount: consideration.startAmount,
-                offerer: parameters.offerer,
-                zone: parameters.zone,
-                offerToken: offer.token,
-                offerIdentifier: offer.identifierOrCriteria,
-                offerAmount: offer.startAmount,
-                basicOrderType: 0, // Basic order type for ETH for NFT
-                startTime: parameters.startTime,
-                endTime: parameters.endTime,
-                zoneHash: parameters.zoneHash,
-                salt: parameters.salt,
-                offererConduitKey: parameters.conduitKey,
-                fulfillerConduitKey: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                totalOriginalAdditionalRecipients: 0,
-                additionalRecipients: [],
-                signature: parameters.signature || "0x"
-            }]);
-
-            // Calculate price in ETH and convert to BRETT
-            const priceInEth = Number(selectedNFT.listing.price.current.value) /
-                Math.pow(10, selectedNFT.listing.price.current.decimals);
-
-            // Update the amount in BRETT
-            aarcModal.updateRequestedAmount(priceInEth);
+            // Generate the contract payload for minting
+            const contractPayload = simpleDappInterface.encodeFunctionData("mint", [
+                tokenAddress,
+                MINTING_CONTRACT_ADDRESS,
+                amount
+            ]);
+            // Update the amount in ETH - use the same amount as the working implementation
+            aarcModal.updateRequestedAmount(0.01);
 
             // Update Aarc's destination contract configuration
             aarcModal.updateDestinationContract({
-                contractAddress: SEAPORT_ADDRESS,
-                contractName: "RampX NFT",
-                contractGasLimit: "800000",
+                contractAddress: MINTING_CONTRACT_ADDRESS,
+                contractName: "RampX Mint",
+                contractGasLimit: "200000",
                 contractPayload: contractPayload,
                 contractLogoURI: "https://rampx.app/logo.png"
             });
@@ -286,7 +257,7 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
                                 disabled={isProcessing || shouldDisableInteraction}
                                 className="w-full h-11 mt-2 bg-[#A5E547] hover:opacity-90 text-[#003300] font-semibold rounded-2xl border border-[rgba(0,51,0,0.05)] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isProcessing ? 'Processing...' : 'Buy NFT'}
+                                    {isProcessing ? 'Processing...' : 'Mint NFT'}
                             </button>
                         </>
                     )}

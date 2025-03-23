@@ -5,7 +5,7 @@ import {
   TransactionErrorData,
   SourceConnectorName,
 } from "@aarc-xyz/fundkit-web-sdk";
-import { SEAPORT_ADDRESS } from "../constants";
+import { MINTING_CONTRACT_ADDRESS } from "../constants";
 
 export const aarcConfig: FKConfig = {
   appName: "RampX x Aarc",
@@ -26,14 +26,14 @@ export const aarcConfig: FKConfig = {
   },
   destination: {
     contract: {
-      contractAddress: SEAPORT_ADDRESS,
-      contractName: "Seaport",
+      contractAddress: MINTING_CONTRACT_ADDRESS,
+      contractName: "RampX NFT",
       contractPayload: "0x", // This will be updated dynamically
       contractGasLimit: "300000", // Standard gas limit, can be adjusted if needed
     },
-    walletAddress: SEAPORT_ADDRESS,
-    chainId: 1, // Ethereum chain ID
-    tokenAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", // ETH
+    walletAddress: MINTING_CONTRACT_ADDRESS,
+    chainId: 8453, // Base chain ID
+    tokenAddress: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", // USDC
   },
   appearance: {
     roundness: 42,
