@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
 import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
-import { THE_RBTZ_NFT_CONTRACT_ADDRESS, SupportedChainId, MINTING_CONTRACT_ADDRESS } from '../constants';
+import { MINTING_CONTRACT_ADDRESS } from '../constants';
 import { Navbar } from './Navbar';
 import StyledConnectButton from './StyledConnectButton';
 import { NFT } from '../types/nft';
