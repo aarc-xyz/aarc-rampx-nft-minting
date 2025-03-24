@@ -32,8 +32,8 @@ export const aarcConfig: FKConfig = {
       contractGasLimit: "300000", // Standard gas limit, can be adjusted if needed
     },
     walletAddress: MINTING_CONTRACT_ADDRESS,
-    chainId: 8453, // Base chain ID
-    tokenAddress: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", // USDC
+    chainId: 42161, // Arbitrum chain ID
+    tokenAddress: "0x0000000000000000000000000000000000000000", // ETH on Arbitrum
   },
   appearance: {
     roundness: 42,

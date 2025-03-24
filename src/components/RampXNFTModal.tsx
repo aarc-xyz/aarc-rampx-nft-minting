@@ -59,24 +59,21 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
         try {
             setIsProcessing(true);
 
-            // Create the simple minting contract interface
+            // Create the contract interface with mintTo function
             const simpleDappInterface = new ethers.Interface([
-                "function mint(address token, address to, uint256 amount) external"
+                "function mintTo(address recipient, uint256 quantity) external payable"
             ]);
 
-            // Hardcoded values for demo
-            const tokenAddress = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"; // USDC on Base
-            const amount = "10000";
-
-            // Generate the contract payload for minting
-            const contractPayload = simpleDappInterface.encodeFunctionData("mint", [
-                tokenAddress,
-                MINTING_CONTRACT_ADDRESS,
-                amount
+            // Generate the contract payload for minting to the user's address
+            const contractPayload = simpleDappInterface.encodeFunctionData("mintTo", [
+                address, // recipient: user's address
+                1 // quantity: mint 1 NFT
             ]);
 
-            // Update the amount in ETH
-            aarcModal.updateRequestedAmount(0.01);
+            console.log(contractPayload);
+
+            // Update the amount in ETH, price is hardcoded to 0.0001 ETH for this contract
+            aarcModal.updateRequestedAmount(0.0001);
 
             // Update Aarc's destination contract configuration
             aarcModal.updateDestinationContract({
