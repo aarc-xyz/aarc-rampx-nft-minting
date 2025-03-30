@@ -8,12 +8,6 @@ import { AarcEthWalletConnector, wagmiConfig } from '@aarc-xyz/eth-connector';
 import { aarcConfig } from './config/aarcConfig';
 import RampXNFTModal from './components/RampXNFTModal';
 
-declare global {
-  interface Window {
-    __VUE__: boolean;
-  }
-}
-
 const queryClient = new QueryClient();
 
 function App() {
