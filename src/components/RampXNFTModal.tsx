@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
-import { AarcFundKitModal } from '@aarc-xyz/fundkit-web-sdk';
+import { AarcFundKitModal } from '@aarc-dev/fundkit-web-sdk';
 import { MINTING_CONTRACT_ADDRESS } from '../constants';
 import { Navbar } from './Navbar';
 import StyledConnectButton from './StyledConnectButton';
@@ -80,7 +80,9 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
                 contractAddress: MINTING_CONTRACT_ADDRESS,
                 contractName: "RampX Mint",
                 contractGasLimit: "200000",
-                contractPayload: contractPayload,
+                contractPayload: contractPayload, // Required by v4 interface
+                calldataABI: JSON.stringify(simpleDappInterface.fragments), // Use the ABI fragments for v4
+                calldataParams: contractPayload, // Use the encoded function data as params for v4
                 contractLogoURI: "https://rampx.app/logo.png"
             });
 
@@ -151,7 +153,7 @@ export const RampXNFTModal = ({ aarcModal }: { aarcModal: AarcFundKitModal }) =>
                                 disabled={isProcessing || shouldDisableInteraction}
                                 className="w-full h-11 mt-2 bg-[#A5E547] hover:opacity-90 text-[#003300] font-semibold rounded-2xl border border-[rgba(0,51,0,0.05)] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                    {isProcessing ? 'Processing...' : 'Mint NFT'}
+                                {isProcessing ? 'Processing...' : 'Mint NFT'}
                             </button>
                         </>
                     )}
